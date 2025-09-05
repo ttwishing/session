@@ -1,4 +1,9 @@
-import {ChainDefinition, type ChainDefinitionType, type Fetch} from '@wharfkit/common'
+import {
+    ChainDefinition,
+    LocaleDefinitions,
+    type ChainDefinitionType,
+    type Fetch,
+} from '@wharfkit/common'
 import type {Contract} from '@wharfkit/contract'
 import {
     Checksum256,
@@ -369,6 +374,7 @@ export class SessionKit {
                     context.uiRequirements.requiresWalletSelect = false
                 }
             }
+            console.log('walletPlugin = ', walletPlugin)
 
             // Set any uiRequirement overrides from the wallet plugin
             if (walletPlugin) {
@@ -376,6 +382,7 @@ export class SessionKit {
                     ...context.uiRequirements,
                     ...walletPlugin.config,
                 }
+                context.ui.addTranslations(this.getPluginTranslations(walletPlugin))
             }
 
             // Predetermine chain (if possible) to prevent uneeded UI interactions.
@@ -770,6 +777,20 @@ export class SessionKit {
         } catch (e) {
             throw new Error(`Failed to parse sessions from storage (${e})`)
         }
+    }
+
+    getPluginTranslations(transactPlugin: TransactPlugin | WalletPlugin): LocaleDefinitions {
+        if (!transactPlugin.translations) {
+            return {}
+        }
+        const prefixed = {}
+        const languages = Object.keys(transactPlugin.translations)
+        languages.forEach((lang) => {
+            if (transactPlugin.translations) {
+                prefixed[lang] = {[transactPlugin.id]: transactPlugin.translations[lang]}
+            }
+        })
+        return prefixed
     }
 
     getSessionOptions(options?: LoginOptions) {
